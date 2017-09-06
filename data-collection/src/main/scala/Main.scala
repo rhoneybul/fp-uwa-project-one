@@ -17,43 +17,47 @@ object Main extends App {
 
     println(s"Getting Data for: ${link}, Link: ${curr_index} of ${total_index}")
     doc = Jsoup.connect(link).get()
-    var tables = doc.select("table.wikitable")
+    var tables = doc.select("table.wikitable").zipWithIndex
 
     val yearSplit = filename.split(" ")
     var year = yearSplit(yearSplit.length-1)
 
-    var table = tables(0)
+    for ((table, i) <- tables) {
+      println(s"Getting Table ${i}")
+      var headers = table.select("tr > th").map(
+        header => header.text
+      ).zipWithIndex.filter(
+        header => relevantHeaders.contains(header._1)
+      )
+
+      var headerIndices = headers.map(header => header._2)
+      var headerVals = headers.map(header => header._1.replace("\n", ""))
+
+      var rows = table.select("tbody > tr").zipWithIndex
+      rows.remove(0)
+
+      val allRows = rows.map(
+        row => row._1.select("td").map(
+          el => el.text
+        ).zipWithIndex.filter(
+          rowElem => headerIndices.contains(rowElem._2)
+        )
+      )
+
+      val rowValues = allRows.map(row => row.map(el => el._1.replace("\n", "")))
+
+      Writer.write("Year".concat("\t"))
+      Writer.write(headerVals.mkString("\t").concat("\n"))
+      rowValues.map(
+        row => Writer.write(year.concat("\t").concat(row.mkString("\t").concat("\n")))
+      )
+      Writer.write("\n")
+    }
+
+    // var table = tables(0)
 
     // GET FOR ALL TABLES, NOT JUST THE FIRST
 
-    var headers = table.select("tr > th").map(
-      header => header.text
-    ).zipWithIndex.filter(
-      header => relevantHeaders.contains(header._1)
-    )
-
-    var headerIndices = headers.map(header => header._2)
-    var headerVals = headers.map(header => header._1.replace("\n", ""))
-
-    var rows = table.select("tbody > tr").zipWithIndex
-    rows.remove(0)
-
-    val allRows = rows.map(
-      row => row._1.select("td").map(
-        el => el.text
-      ).zipWithIndex.filter(
-        rowElem => headerIndices.contains(rowElem._2)
-      )
-    )
-
-    val rowValues = allRows.map(row => row.map(el => el._1.replace("\n", "")))
-
-    Writer.write("Year".concat("\t"))
-    Writer.write(headerVals.mkString("\t").concat("\n"))
-    rowValues.map(
-      row => Writer.write(year.concat("\t").concat(row.mkString("\t").concat("\n")))
-    )
-    Writer.write("\n")
   }
 
   val wikiBaseUrl = "http://en.wikipedia.org"
