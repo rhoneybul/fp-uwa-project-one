@@ -50,12 +50,12 @@ object Main extends App {
 
         val rowValues = allRows.map(row => row.map(el => el._1.replace("\n", "")))
 
-        Writer.write("Year".concat("\t"))
-        Writer.write(headerVals.mkString("\t").concat("\n"))
+        // Writer.write("Year".concat("\t"))
+        // Writer.write(headerVals.mkString("\t").concat("\n"))
         rowValues.map(
           row => Writer.write(year.concat("\t").concat(row.mkString("\t").concat("\n")))
         )
-        Writer.write("\n")
+        // Writer.write("\n")
       }
 
     }
@@ -95,6 +95,8 @@ object Main extends App {
   val relevantLinksWithIndex = relevantLinks.zipWithIndex
 
   val Writer = new PrintWriter(new File("data/incidents.txt"))
+
+  Writer.write(relevantHeaders.mkString(", ").concat("\n"))
 
   relevantLinksWithIndex.map(
     link => getDataFromLink(
